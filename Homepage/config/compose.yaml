@@ -1,0 +1,54 @@
+name: homepage
+
+services:
+  Homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: Homepage
+    environment:
+      - TZ=Europe/Madrid
+      - HOMEPAGE_ALLOWED_HOSTS=example.com,www.example.com
+    volumes:
+      - homepage_config:/app/config
+      - homepage_public_images:/app/public/images
+      - homepage_public_icons:/app/public/icons
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    mem_limit: 256M
+    cpus: 0.30
+    networks:
+      - homepage_update_network
+      - web_network
+
+networks:
+  homepage_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  homepage_config:
+    name: homepage_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /SERVICES/Homepage/volumes/homepage
+  homepage_public_images:
+    name: homepage_public_images
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /SERVICES/Homepage/volumes/homepage/public/images
+  homepage_public_icons:
+    name: homepage_public_icons
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /SERVICES/Homepage/volumes/homepage/public/icons

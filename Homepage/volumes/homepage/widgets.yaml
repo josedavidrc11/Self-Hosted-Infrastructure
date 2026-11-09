@@ -1,0 +1,21 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/info-widgets/
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+
+#- datetime:
+#    format:
+#      dateStyle: long
+#      timeStyle: short
+#    locale: es-ES
+
+- openmeteo:
+    latitude: 37.4633
+    longitude: -3.9221
+    units: metric
+    cache: 5
+    label: Alcalá la Real

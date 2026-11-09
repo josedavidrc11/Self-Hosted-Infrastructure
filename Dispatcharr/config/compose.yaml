@@ -1,0 +1,32 @@
+name: dispatcharr
+
+services:
+  Dispatcharr:
+    image: ghcr.io/dispatcharr/dispatcharr:latest
+    container_name: Dispatcharr
+    restart: unless-stopped
+    networks:
+      - dispatcharr_update_network
+      - web_network
+    environment:
+      - TZ=Europe/Madrid
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - Dispatcharr_data:/data
+
+networks:
+  dispatcharr_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Dispatcharr_data:
+    name: dispatcharr_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Dispatcharr/volumes/data
+      o: bind
+

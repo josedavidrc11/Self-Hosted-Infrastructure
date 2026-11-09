@@ -1,0 +1,32 @@
+name: nodecast
+
+services:
+  Nodecast-TV:
+    build: https://github.com/technomancer702/nodecast-tv.git#main
+    image: nodecast:latest
+    container_name: Nodecast
+    networks:
+      - nodecast_update_network
+      - web_network
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - Nodecast_data:/app/data
+    restart: unless-stopped
+
+networks:
+  nodecast_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Nodecast_data:
+    name: Nodecast_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Nodecast/volumes/data
+      o: bind
+

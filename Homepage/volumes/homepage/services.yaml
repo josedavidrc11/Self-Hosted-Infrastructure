@@ -1,0 +1,76 @@
+- Self-Hosted Infrastructure:
+    - Nextcloud:
+        icon: nextcloud.png
+        href: https://drive.example.com
+        container: NextCloud
+        description: Almacenamiento y suite de colaboración
+    - Immich:
+        icon: immich.png
+        href: https://photos.example.com
+        container: ImmichServer
+        description: Gestión de fotos y vídeos
+    - Vaultwarden:
+        icon: vaultwarden.png
+        href: https://passwords.example.com
+        container: Vaultwarden
+        description: Gestión de contraseñas
+    - Mailcow:
+        icon: mailcow.png
+        href: https://mail.example.com
+        container: mail-nginx-mailcow-1
+        description: Servidor de correo electrónico
+    - Paperless:
+        icon: paperless-ngx.png
+        href: https://docs.example.com
+        description: Gestión Documental
+        container: Paperless
+    - NetBird:
+        icon: netbird.png
+        href: https://netbird.example.com
+        container: netbird-dashboard
+        description: Mesh VPN de confianza
+    - Hermes Agent:
+        icon: https://raw.githubusercontent.com/NousResearch/hermes-agent/main/website/static/img/logo.png
+        href: https://ai.example.com
+        description: Agente IA Autónomo
+        container: HermesAgent
+    - Forgejo:
+        icon: forgejo.png
+        href: https://git.example.com
+        container: Forgejo
+        description: Repositorios y CI/CD
+    - Calibre:
+        icon: calibre-web.png
+        href: https://books.example.com
+        container: Calibre
+        description: Biblioteca de libros electrónicos
+    - NodeCast TV:
+        icon: mdi-television-play
+        href: "https://tv.example.com"
+        container: Nodecast
+        description: Streaming y TV en directo
+    - Stremio:
+        icon: stremio.png
+        href: https://stremio.example.com
+        container: Stremio
+        description: Cine y series
+    - Crafty:
+        icon: crafty-controller.png
+        href: https://games.example.com
+        container: Crafty
+        description: Panel de control de servidores de juegos
+    - Stirling PDF:
+        icon: stirling-pdf.png
+        href: https://pdf.example.com
+        description: Herramientas de edición de PDF
+        container: Stirling_PDF
+    - Dispatcharr:
+        icon: dispatcharr.png
+        href: https://iptv.example.com
+        description: Gestión de Streams y EPG
+        container: Dispatcharr
+    - RustDesk:
+        icon: rustdesk.png
+        href: https://desktop.example.com
+        container: Rustdesk_api
+        description: Control Remoto Open Source

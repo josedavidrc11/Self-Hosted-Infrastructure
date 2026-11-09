@@ -1,0 +1,54 @@
+name: HomeAssistant
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    environment:
+      - TZ=Europe/Madrid
+    volumes:
+      - HA_config:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - web_network
+      - homeassistant_update_network
+      - homeassistant_network
+    restart: unless-stopped
+    depends_on:
+      - tailscale
+
+  tailscale:
+    image: tailscale/tailscale:stable
+    container_name: tailscale
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=${TSKEY}
+      - TS_USERSPACE=false
+    volumes:
+      - tailscale_var:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - homeassistant_network
+    restart: unless-stopped
+
+networks:
+  homeassistant_update_network:
+    external: true
+  web_network:
+    external: true
+  homeassistant_network:
+    driver: bridge
+
+volumes:
+  HA_config:
+    name: HA_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/HomeAssistant/volumes/ha/config
+      o: bind
+  tailscale_var:
+    name: tailscale_var
+    driver: local

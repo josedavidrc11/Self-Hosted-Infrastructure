@@ -1,0 +1,244 @@
+name: jellyfin
+
+services:
+  # Servidor de Medios
+  Jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: Jellyfin
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 8096:8096
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Jellyfin_config:/config
+      - type: bind
+        source: /SERVICES/Jellyfin/volumes/media
+        target: /data
+        bind:
+          propagation: rshared
+    restart: unless-stopped
+
+  # Gestión de Películas
+  Radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: Radarr
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Radarr_config:/config
+      - type: bind
+        source: /SERVICES/Jellyfin/volumes/media/movies_download
+        target: /movies
+        bind:
+          propagation: rshared
+      - Downloads_data:/downloads
+    restart: unless-stopped
+
+  # Gestión de Series
+  Sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: Sonarr
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Sonarr_config:/config
+      - type: bind
+        source: /SERVICES/Jellyfin/volumes/media/series_download
+        target: /series
+        bind:
+          propagation: rshared
+      - Downloads_data:/downloads
+    restart: unless-stopped
+
+  # Cliente de Descargas
+  Qbit:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: Qbit
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - WEBUI_PORT=8080
+    volumes:
+      - Qbit_config:/config
+      - Downloads_data:/downloads
+      - type: bind
+        source: /SERVICES/Jellyfin/volumes/media/movies_download
+        target: /movies
+        bind:
+          propagation: rshared
+      - type: bind
+        source: /SERVICES/Jellyfin/volumes/media/series_download
+        target: /series
+        bind:
+          propagation: rshared
+    restart: unless-stopped
+
+  # Indexador de trackers
+  Prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: Prowlarr
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Prowlarr_config:/config
+    restart: unless-stopped
+
+  # Interfaz de peticiones (Cambiado a Jellyseerr)
+  Jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: Jellyseerr
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    ports:
+      - 5055:5055
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Jellyseerr_config:/app/config
+    restart: unless-stopped
+
+  # Solucionador de retos Cloudflare
+  Flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: Flaresolverr
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Madrid
+    restart: unless-stopped
+
+  Dispatcharr:
+    image: ghcr.io/dispatcharr/dispatcharr:latest
+    container_name: Dispatcharr
+    restart: unless-stopped
+    networks:
+      - jellyfin_update_network
+      - jelly_network
+      - web_network
+    environment:
+      - TZ=Europe/Madrid
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - Dispatcharr_data:/data
+
+networks:
+  jellyfin_update_network:
+    external: true
+  jelly_network:
+    name: jelly_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Jellyfin_config:
+    name: Jellyfin_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/jellyfin/config, o: bind}
+  Radarr_config:
+    name: Radarr_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/radarr/config, o: bind}
+  Sonarr_config:
+    name: Sonarr_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/sonarr/config, o: bind}
+  Qbit_config:
+    name: Qbit_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/qbit/config, o: bind}
+  Prowlarr_config:
+    name: Prowlarr_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/prowlarr/config, o: bind}
+  Jellyseerr_config:
+    name: Jellyseerr_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/jellyseerr/config, o: bind}
+  Downloads_data:
+    name: Downloads_data
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/downloads, o: bind}
+  Flaresolverr_config:
+    name: Flaresolverr_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/flaresolverr/config, o: bind}
+  Dispatcharr_data:
+    name: Dispatcharr_data
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/dispatcharr/data, o: bind}
+  # Media_movies:
+  #   name: Media_movies
+  #   driver: local
+  #   driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/media/movies, o: bind}
+  # Media_tv:
+  #   name: Media_tv
+  #   driver: local
+  #   driver_opts: {type: none, device: /SERVICES/Jellyfin/volumes/media/tv, o: bind}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,15 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/settings/
+
+title: Dashboard Rueda Cano
+favicon: /icons/favicon.png
+
+layout:
+  Self-Hosted Infrastructure:
+    style: row
+    columns: 3
+
+# providers:
+#   openweathermap: openweathermapapikey
+#   weatherapi: weatherapiapikey

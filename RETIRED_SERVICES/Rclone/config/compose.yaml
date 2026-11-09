@@ -1,0 +1,88 @@
+name: Rclone
+
+services:
+  Rclone:
+    image: rclone/rclone:latest
+    container_name: Rclone
+    volumes:
+      - Rclone_config:/config/rclone
+    networks:
+      - rclone_update_network
+      - web_network
+      - rclone_network
+    command: >
+      rcd --rc-web-gui
+      --rc-addr :5572
+      --rc-no-auth
+      --rc-web-gui-no-open-browser
+    restart: unless-stopped
+
+  Rclone_webdav:
+    image: rclone/rclone:latest
+    container_name: Rclone_webdav
+    volumes:
+      - Rclone_config:/config/rclone
+      - /SERVICES/Jellyfin/volumes/downloads:/downloads
+    networks:
+      - rclone_update_network
+      - web_network
+      - rclone_network
+    command: >
+      serve webdav /downloads
+      --addr :80
+      --user josedavid
+      --pass KS7vJBZcrSb5
+    restart: unless-stopped
+
+  Filebrowser:
+    image: filebrowser/filebrowser
+    container_name: Filebrowser
+    volumes:
+      - Filebrowser_media:/srv
+      - Filebrowser_database:/database
+      - Filebrowser_config:/config
+    networks:
+      - web_network
+      - rclone_update_network
+      - rclone_network
+    restart: unless-stopped
+
+networks:
+  rclone_update_network:
+    external: true
+  rclone_network:
+    name: rclone_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Rclone_config:
+    name: Rclone_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rclone/volumes/config
+      o: bind
+  Filebrowser_media:
+    name: Filebrowser_media
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Jellyfin/volumes/media
+      o: bind
+  Filebrowser_database:
+    name: Filebrowser_database
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rclone/volumes/database
+      o: bind
+  Filebrowser_config:
+    name: Filebrowser_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rclone/volumes/config_file
+      o: bind

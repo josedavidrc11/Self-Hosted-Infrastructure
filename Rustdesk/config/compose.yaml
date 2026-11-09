@@ -1,0 +1,83 @@
+name: Rustdesk
+
+services:
+  Rustdesk_hbbs:
+    container_name: Rustdesk_hbbs
+    image: rustdesk/rustdesk-server:latest
+    command: hbbs -r rustdesk.example.com:21117
+    volumes:
+      - Rustdesk_data:/root
+    networks:
+      - rustdesk_network
+      - rustdesk_update_network
+      - web_network
+    ports:
+      - "21115:21115"
+      - "21116:21116"
+      - "21116:21116/udp"
+    restart: unless-stopped
+
+  Rustdesk_hbbr:
+    container_name: Rustdesk_hbbr
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - Rustdesk_data:/root
+    networks:
+      - rustdesk_network
+      - rustdesk_update_network
+      - web_network
+    ports:
+      - "21117:21117"
+    restart: unless-stopped
+
+  Rustdesk_api:
+    container_name: Rustdesk_api
+    image: lejianwen/rustdesk-api:latest
+    environment:
+      - TZ=Europe/Madrid
+      - RUSTDESK_API_RUSTDESK_ID_SERVER=rustdesk.example.com:21116
+      - RUSTDESK_API_RUSTDESK_RELAY_SERVER=rustdesk.example.com:21117
+      - RUSTDESK_API_RUSTDESK_API_SERVER=https://desktop.example.com
+    volumes:
+      - Rustdesk_conf:/app/conf
+      - Rustdesk_api:/app/data
+      - Rustdesk_data:/app/conf/data
+    networks:
+      - rustdesk_network
+      - rustdesk_update_network
+      - web_network
+    restart: unless-stopped
+
+networks:
+  rustdesk_update_network:
+    external: true
+  rustdesk_network:
+    name: rustdesk_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Rustdesk_data:
+    name: Rustdesk_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rustdesk/volumes/data
+      o: bind
+  Rustdesk_api:
+    name: Rustdesk_api
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rustdesk/volumes/api
+      o: bind
+  Rustdesk_conf:
+    name: Rustdesk_conf
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Rustdesk/volumes/conf
+      o: bind

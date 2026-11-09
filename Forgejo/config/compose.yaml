@@ -1,0 +1,69 @@
+name: forgejo
+
+services:
+  Forgejo:
+    image: codeberg.org/forgejo/forgejo:13
+    container_name: Forgejo
+    environment:
+      - USER_UID=${USER_UID}
+      - USER_GID=${USER_GID}
+      - FORGEJO__ui__DEFAULT_THEME=gitea-auto
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=ForgejoDB:5432
+      - FORGEJO__database__NAME=${DB_NAME}
+      - FORGEJO__database__USER=${DB_USER}
+      - FORGEJO__database__PASSWD=${DB_PASS}
+      - FORGEJO__migrations__ALLOWED_DOMAINS=*
+      - FORGEJO__migrations__ALLOW_LOCALNETWORKS=true
+      - FORGEJO__migrations__SKIP_TLS_VERIFY=true
+    volumes:
+      - Forgejo_data:/data
+    ports:
+      - "2246:22"
+    depends_on:
+      - ForgejoDB
+    restart: unless-stopped
+    networks:
+      - forgejo_update_network
+      - forgejo_network
+      - web_network
+
+  ForgejoDB:
+    image: postgres:16
+    container_name: ForgejoDB
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    volumes:
+      - Forgejo_DB:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - forgejo_update_network
+      - forgejo_network
+  
+networks:
+  forgejo_update_network:
+    external: true
+  forgejo_network:
+    name: forgejo_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Forgejo_data:
+    name: Forgejo_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Forgejo/volumes/data
+      o: bind
+  Forgejo_DB:
+    name: Forgejo_DB
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Forgejo/volumes/postgresql
+      o: bind

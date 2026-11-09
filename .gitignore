@@ -1,0 +1,20 @@
+# Ignore all application data
+**/volumes/
+**/data/
+
+# Ignore sensitive configuration files
+*.env
+.env
+**/mailcow.conf
+**/.terraform/
+**/*.log
+
+# Ignore Mailcow files as it is a separate git repository
+Mail/
+
+# Exceptions
+!Web_Server/volumes/webserver/config/nginx/proxy-confs/*.conf
+!NextCloud/volumes/nextcloud/config/config.php
+!Homepage/volumes/homepage/services.yaml
+!Homepage/volumes/homepage/settings.yaml
+!Homepage/volumes/homepage/widgets.yaml

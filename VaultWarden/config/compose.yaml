@@ -1,0 +1,47 @@
+name: vaultwarden
+
+services:
+  # Vaultwarden
+  Vaultwarden:
+    image: vaultwarden/server
+    container_name: Vaultwarden
+    environment:
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=false
+      - DOMAIN=https://${URL2}
+#      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURITY=force_tls
+      - SMTP_USERNAME=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASS}
+      - TZ=Europe/Madrid
+    volumes:
+      - Vaultwarden_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    mem_limit: 512M
+    cpus: 0.50
+    networks:
+      - vaultwarden_update_network
+      - web_network
+
+networks:
+  vaultwarden_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Vaultwarden_data:
+    name: Vaultwarden_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/VaultWarden/volumes/vaultwarden/data
+      o: bind

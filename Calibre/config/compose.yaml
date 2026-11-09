@@ -1,0 +1,44 @@
+name: Calibre
+
+services:
+  Calibre:
+    image: lscr.io/linuxserver/calibre-web
+    container_name: Calibre
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - Calibre_config:/config
+      - Calibre_books:/books
+    networks:
+      - calibre_network
+      - calibre_update_network
+      - web_network
+    restart: unless-stopped
+
+networks:
+  calibre_network:
+    name: calibre_network
+    driver: bridge
+    internal: true
+  calibre_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Calibre_config:
+    name: Calibre_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Calibre/volumes/calibre/config
+      o: bind
+  Calibre_books:
+    name: Calibre_books
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Calibre/volumes/calibre/books
+      o: bind

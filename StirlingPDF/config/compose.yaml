@@ -1,0 +1,55 @@
+name: stirling-pdf
+
+services:
+  Stirling_PDF:
+    image: frooodle/s-pdf:latest
+    container_name: Stirling_PDF
+    restart: unless-stopped
+    volumes:
+      - Stirling_trainingData:/usr/share/tessdata
+      - Stirling_extraGlobalFiles:/usr/share/stirling-pdf/extraGlobalFiles
+      - Stirling_logs:/logs
+      - Stirling_configs:/configs
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
+      - LANGS=es_ES
+    networks:
+      - stirling_update_network
+      - web_network
+
+networks:
+  stirling_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Stirling_trainingData:
+    name: Stirling_trainingData
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/StirlingPDF/volumes/stirling/trainingData
+      o: bind
+  Stirling_extraGlobalFiles:
+    name: Stirling_extraGlobalFiles
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/StirlingPDF/volumes/stirling/extraGlobalFiles
+      o: bind
+  Stirling_logs:
+    name: Stirling_logs
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/StirlingPDF/volumes/stirling/logs
+      o: bind
+  Stirling_configs:
+    name: Stirling_configs
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/StirlingPDF/volumes/stirling/configs
+      o: bind

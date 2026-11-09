@@ -1,0 +1,226 @@
+name: webserver
+
+services:
+  # DDClient (IP dinámica)
+  DDClient:
+    image: linuxserver/ddclient
+    container_name: DDClient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - DDClient_config:/etc/ddclient/ #/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "ddclient", "|", "grep", "-v", "grep"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    mem_limit: 128M
+    cpus: 0.1
+    networks:
+      - webserver_update_network
+
+  # LetsEncrypt (para certificado y Nginx como web server)
+  WebServer:
+    image: linuxserver/swag
+    container_name: WebServer
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - URL=${URL}
+      - SUBDOMAINS=${SUBDOMAINS}
+      - ONLY_SUBDOMAINS=false
+      - VALIDATION=http
+      - EMAIL=${ADMIN_EMAIL}
+    volumes:
+      - WebEncrypt_config:/config
+    ports:
+      - 443:443
+      - 80:80
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/health", "||", "curl", "-f", "http://localhost/health"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    mem_limit: 1G
+    cpus: 0.4
+    networks:
+      - webserver_update_network
+      - web_network
+
+  # Watchtower (actualizacion automatica)
+  Watchtower:
+    image: nickfedor/watchtower
+    container_name: Watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - DOCKER_API_VERSION=1.44
+      - TZ=Europe/Madrid
+    restart: unless-stopped
+    command: --cleanup --interval 3600
+    mem_limit: 128M
+    cpus: 0.10
+    networks:
+      - webserver_update_network
+      - nextcloud_update_network
+      - immich_update_network
+      - vaultwarden_update_network
+      - forgejo_update_network
+      - calibre_update_network
+      - nodecast_update_network
+      - homepage_update_network
+      - crafty_update_network
+      - paperless_update_network
+      - stremio_update_network
+      - netbird_update_network
+      - rustdesk_update_network
+      - dispatcharr_update_network
+      - stirling_update_network
+      - hermes_update_network
+
+#  WUD:
+#    image: getwud/wud
+#    container_name: WUD
+#    environment:
+#      - PUID=1000
+#      - PGID=1000
+#      - TZ=Europe/Madrid
+#      - WUD_WATCHER_DOCKER_SOCKET=/var/run/docker.sock
+#      - WUD_AUTH_BASIC_ADMIN_USER=${WUD_USER}
+#      - WUD_AUTH_BASIC_ADMIN_HASH=${WUD_HASH}
+#      - WATCH_MODE=all
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    restart: unless-stopped
+#    mem_limit: 256M
+#    cpus: 0.2
+#    networks:
+#      - webserver_update_network
+#      - web_network
+
+networks:
+  web_network:
+    name: web_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+  webserver_update_network:
+    name: webserver_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.1.0/24
+  nextcloud_update_network:
+    name: nextcloud_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.2.0/24
+  immich_update_network:
+    name: immich_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.3.0/24
+  vaultwarden_update_network:
+    name: vaultwarden_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.4.0/24
+  forgejo_update_network:
+    name: forgejo_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.5.0/24
+  calibre_update_network:
+    name: calibre_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.6.0/24
+  nodecast_update_network:
+    name: nodecast_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.7.0/24
+  dispatcharr_update_network:
+    name: dispatcharr_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.8.0/24
+  homepage_update_network:
+    name: homepage_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.9.0/24
+  crafty_update_network:
+    name: crafty_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24
+  paperless_update_network:
+    name: paperless_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.11.0/24
+  stremio_update_network:
+    name: stremio_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.12.0/24
+  netbird_update_network:
+    name: netbird_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.13.0/24
+  rustdesk_update_network:
+    name: rustdesk_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.14.0/24
+  stirling_update_network:
+    name: stirling_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.15.0/24
+  hermes_update_network:
+    name: hermes_update_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.16.0/24
+volumes:
+  DDClient_config:
+    name: DDClient_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Web_Server/volumes/ddclient/config
+      o: bind
+  WebEncrypt_config:
+    name: WebEncrypt_config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Web_Server/volumes/webserver/config
+      o: bind
+

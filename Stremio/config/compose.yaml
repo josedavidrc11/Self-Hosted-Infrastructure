@@ -1,0 +1,33 @@
+name: stremio
+
+services:
+  Stremio:
+    image: stremio/server:latest
+    container_name: Stremio
+#    ports:
+#      - "11470:11470"
+    environment:
+      - NO_HTTPS=1
+      - NO_CORS=1
+      - SERVER_HOST=0.0.0.0
+      - STREMIO_LOGGING=1
+      - CUSTOM_ADDR=stremio.example.com
+      - BASE_URL=https://stremio.example.com
+    volumes:
+      - Stremio_data:/root/.stremio-server
+    networks:
+      - stremio_update_network
+      - web_network
+    restart: unless-stopped
+
+networks:
+  stremio_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Stremio_data:
+    name: Stremio_data
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Stremio/volumes/data, o: bind}

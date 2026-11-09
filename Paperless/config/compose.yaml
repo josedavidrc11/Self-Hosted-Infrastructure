@@ -1,0 +1,106 @@
+name: paperless
+services:
+  Paperless_broker:
+    image: docker.io/library/redis:8
+    container_name: Paperless_broker
+    restart: unless-stopped
+    volumes:
+      - Paperless_redis:/data
+    networks:
+      - paperless_network
+      - paperless_update_network
+  PaperlessDB:
+    container_name: PaperlessDB
+    image: docker.io/library/mariadb:12
+    restart: unless-stopped
+    volumes:
+      - Paperless_sql:/var/lib/mysql
+    environment:
+      MARIADB_HOST: PaperlessDB
+      MARIADB_DATABASE: paperless
+      MARIADB_USER: paperless_user
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    networks:
+      - paperless_network
+      - paperless_update_network
+  Paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: Paperless
+    restart: unless-stopped
+    depends_on:
+      - PaperlessDB
+      - Paperless_broker
+    volumes:
+      - Paperless_data:/usr/src/paperless/data
+      - Paperless_media:/usr/src/paperless/media
+      - Paperless_export:/usr/src/paperless/export
+      - Paperless_consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://Paperless_broker:6379
+      PAPERLESS_DBENGINE: mariadb
+      PAPERLESS_DBHOST: PaperlessDB
+      PAPERLESS_DBUSER: paperless_user
+      PAPERLESS_DBPASS: ${PAPERLESS_DBPASS}
+      PAPERLESS_DBPORT: 3306
+      PAPERLESS_SECRET_KEY: "${PAPERLESS_SECRET_KEY}"
+      PAPERLESS_URL: "https://docs.example.com"
+      PAPERLESS_CONSUMER_DELETE_DUPLICATES: true
+    networks:
+      - paperless_network
+      - paperless_update_network
+      - web_network
+
+networks:
+  paperless_update_network:
+    external: true
+  paperless_network:
+    name: paperless_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Paperless_sql:
+    name: Paperless_sql
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/sql
+      o: bind
+  Paperless_redis:
+    name: Paperless_redis
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/redis
+      o: bind
+  Paperless_data:
+    name: Paperless_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/data
+      o: bind
+  Paperless_media:
+    name: Paperless_media
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/media
+      o: bind
+  Paperless_export:
+    name: Paperless_export
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/export
+      o: bind
+  Paperless_consume:
+    name: Paperless_consume 
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Paperless/volumes/paperless/consume
+      o: bind

@@ -1,0 +1,82 @@
+name: netbird
+
+services:
+  # UI dashboard
+  dashboard:
+    image: netbirdio/dashboard:latest
+    container_name: netbird-dashboard
+    restart: unless-stopped
+    networks:
+        - netbird_update_network
+        - netbird_network
+        - web_network
+#    ports:
+#      - '127.0.0.1:8080:80'
+    env_file:
+      - ./dashboard.env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500m"
+        max-file: "2"
+
+  # Combined server (Management + Signal + Relay + STUN)
+  netbird-server:
+    image: netbirdio/netbird-server:latest
+    container_name: netbird-server
+    restart: unless-stopped
+    networks:
+        - netbird_update_network
+        - netbird_network
+        - web_network
+    ports:
+#      - '127.0.0.1:8081:80'
+      - '3478:3478/udp'
+    volumes:
+      - Netbird_data:/var/lib/netbird
+      - ./config.yaml:/etc/netbird/config.yaml
+    command: ["--config", "/etc/netbird/config.yaml"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500m"
+        max-file: "2"
+
+  netbird-client:
+    container_name: netbird-client
+    image: netbirdio/netbird:latest
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    volumes:
+      - /lib/modules:/lib/modules
+      - Netbird_client_data:/var/lib/netbird
+    environment:
+      - NB_MANAGEMENT_URL=https://netbird.example.com:443
+      - NB_SETUP_KEY=D9FBAAED-E3B6-40F0-AFF6-92B55D94F102
+
+networks:
+    netbird_update_network:
+        external: true
+    netbird_network:
+        name: netbird_network
+        driver: bridge
+        internal: true
+    web_network:
+        external: true
+
+volumes:
+  Netbird_data:
+    name: Netbird_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Netbird/volumes/data
+      o: bind
+  Netbird_client_data:
+    name: Netbird_client_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Netbird/volumes/client_data
+      o: bind

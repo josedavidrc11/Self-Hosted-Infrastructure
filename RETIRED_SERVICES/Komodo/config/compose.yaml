@@ -1,0 +1,117 @@
+name: komodo
+
+services:
+  Komodo_mongo:
+    image: mongo
+    container_name: Komodo_mongo
+    labels:
+      komodo.skip:
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    restart: unless-stopped
+    volumes:
+      - Komodo_mongo-data:/data/db
+      - Komodo_mongo-config:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
+    networks:
+      - komodo_network
+      - komodo_update_network
+
+  Komodo:
+    image: ghcr.io/moghtech/komodo-core:${COMPOSE_KOMODO_IMAGE_TAG:-latest}
+    container_name: Komodo
+    labels:
+      komodo.skip:
+    restart: unless-stopped
+    depends_on:
+      - Komodo_mongo
+    # ports:
+    #  - 9120:9120
+    env_file: ./.env
+    environment:
+      KOMODO_DATABASE_ADDRESS: Komodo_mongo:27017
+      KOMODO_DATABASE_USERNAME: ${KOMODO_DB_USERNAME}
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+    volumes:
+      - ${COMPOSE_KOMODO_BACKUPS_PATH}:/backups
+      - Komodo_syncs:/syncs
+    networks:
+      - komodo_network
+      - komodo_update_network
+      - web_network
+
+  Komodo_periphery:
+    image: ghcr.io/moghtech/komodo-periphery:${COMPOSE_KOMODO_IMAGE_TAG:-latest}
+    container_name: Komodo_periphery
+    labels:
+      komodo.skip:
+    restart: unless-stopped
+    env_file: ./.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
+      - Komodo_periphery:/etc/komodo
+      - /SERVICES/Beszel/config:/SERVICES/Beszel/config:ro
+      - /SERVICES/Calibre/config:/SERVICES/Calibre/config:ro
+      - /SERVICES/Crafty/config:/SERVICES/Crafty/config:ro
+      - /SERVICES/Firefly/config:/SERVICES/Firefly/config:ro
+      - /SERVICES/Forgejo/config:/SERVICES/Forgejo/config:ro
+      - /SERVICES/GitLab/config:/SERVICES/GitLab/config:ro
+      - /SERVICES/HomeAssistant/config:/SERVICES/HomeAssistant/config:ro
+      - /SERVICES/Homepage/config:/SERVICES/Homepage/config:ro
+      - /SERVICES/Immich/config:/SERVICES/Immich/config:ro
+      - /SERVICES/Jellyfin/config:/SERVICES/Jellyfin/config:ro
+      - /SERVICES/Komodo/config:/SERVICES/Komodo/config:ro
+      - /SERVICES/NextCloud/config:/SERVICES/NextCloud/config:ro
+      - /SERVICES/Rustdesk/config:/SERVICES/Rustdesk/config:ro
+      - /SERVICES/Netbird/config:/SERVICES/Netbird/config:ro
+      - /SERVICES/Paperless/config:/SERVICES/Paperless/config:ro
+      - /SERVICES/Rclone/config:/SERVICES/Rclone/config:ro
+      - /SERVICES/Stremio/config:/SERVICES/Stremio/config:ro
+      - /SERVICES/VaultWarden/config:/SERVICES/VaultWarden/config:ro
+      - /SERVICES/Web_Server/config:/SERVICES/Web_Server/config:ro
+      - /SERVICES/Mail:/SERVICES/Mail:ro
+    networks:
+      - komodo_network
+      - komodo_update_network
+
+networks:
+  komodo_update_network:
+    external: true
+  komodo_network:
+    name: komodo_network
+    driver: bridge
+    internal: true
+  web_network:
+    external: true
+
+volumes:
+  Komodo_mongo-data:
+    name: Komodo_mongo-data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Komodo/volumes/komodo/mongo/data
+      o: bind
+  Komodo_mongo-config:
+    name: Komodo_mongo-config
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Komodo/volumes/komodo/mongo/config
+      o: bind
+  Komodo_syncs:
+    name: Komodo_syncs
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Komodo/volumes/komodo/syncs
+      o: bind
+  Komodo_periphery:
+    name: Komodo_periphery
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Komodo/volumes/periphery
+      o: bind

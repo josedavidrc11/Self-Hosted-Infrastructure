@@ -1,0 +1,57 @@
+name: beszel
+
+services:
+  Beszel:
+    image: henrygd/beszel:latest
+    container_name: Beszel
+    restart: unless-stopped
+    volumes:
+      - Beszel_data:/beszel_data
+      - Beszel_socket:/beszel_socket
+    networks:
+      - web_network
+      - beszel_update_network
+
+  Beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: Beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - Beszel_agent_data:/var/lib/beszel-agent
+      - Beszel_socket:/beszel_socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      LISTEN: /beszel_socket/beszel.sock
+      HUB_URL: https://control.example.com
+      TOKEN: ec
+      KEY: "sV"
+
+networks:
+  beszel_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Beszel_data:
+    name: Beszel_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Beszel/volumes/beszel/data
+      o: bind
+  Beszel_socket:
+    name: Beszel_socket
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Beszel/volumes/beszel/socket
+      o: bind
+  Beszel_agent_data:
+    name: Beszel_agent_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /SERVICES/Beszel/volumes/beszel/agent_data
+      o: bind

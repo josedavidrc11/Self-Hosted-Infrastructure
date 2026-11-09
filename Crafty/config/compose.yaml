@@ -1,0 +1,53 @@
+name: crafty
+
+services:
+
+  Crafty:
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: Crafty
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    networks:
+      - crafty_update_network
+      - web_network
+    ports:
+#      - 8443:8443        # Panel Web (HTTPS)
+       - 44271:25565      # Puerto Minecraft Java
+#      - 19132:19132/udp  # Puerto Minecraft Bedrock
+    volumes:
+      - Crafty_config:/crafty/app/config
+      - Crafty_import:/crafty/import
+      - Crafty_servers:/crafty/servers
+      - Crafty_backups:/crafty/backups
+      - Crafty_logs:/crafty/logs
+
+networks:
+  crafty_update_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  Crafty_config:
+    name: Crafty_config
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Crafty/volumes/config, o: bind}
+  Crafty_import:
+    name: Crafty_import
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Crafty/volumes/import, o: bind}
+  Crafty_servers:
+    name: Crafty_servers
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Crafty/volumes/servers, o: bind}
+  Crafty_backups:
+    name: Crafty_backups
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Crafty/volumes/backups, o: bind}
+  Crafty_logs:
+    name: Crafty_logs
+    driver: local
+    driver_opts: {type: none, device: /SERVICES/Crafty/volumes/logs, o: bind}
